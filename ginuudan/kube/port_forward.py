@@ -92,7 +92,7 @@ def port_forward(name, namespace, port, api_instance):
     socket.create_connection = kubernetes_create_connection
 
     req = request.Request(
-        f"http://{name}.pod.{namespace}.kubernetes/shutdown", method="POST"
+        f'http://{name}.pod.{namespace}.kubernetes:{port}/shutdown', method='POST'
     )
     resp = request.urlopen(req)
     html = resp.read().decode('utf-8')
