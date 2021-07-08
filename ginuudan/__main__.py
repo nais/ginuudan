@@ -1,28 +1,12 @@
 import kopf
 from kube.port_forward import port_forward
 from kube import init_corev1
+from spec import get_by_name, get_current_state, get_sidecars
+import logger
 
 
-def get_by_name(name, data):
-    if data:
-        for d in data:
-            if d["name"] == name:
-                return d
-    return None
-
-
-def get_current_state(status):
-    if status:
-        return list(status["state"].keys())[0]
-    return None
-
-
-def get_sidecars(spec, appname):
-    return [
-        container["name"]
-        for container in spec["containers"]
-        if container["name"] != appname
-    ]
+core_v1 = init_corev1()
+log = logger.setup_logger("ginuudan")
 
 
 @kopf.on.field(
@@ -30,11 +14,15 @@ def get_sidecars(spec, appname):
     annotations={"ginuudan.nais.io/dwindle": "true"},
     field="status.containerStatuses",
 )
-def judgeme(old, new, name, namespace, spec, **kwargs):
+def status_change(old, new, name, namespace, spec, **kwargs):
     appname = name.split("-")[0]
+    old_app_container_status = get_by_name(appname, old)
     app_container_status = get_by_name(appname, new)
-    print(
-        f"received container status change for {name} (main container: {appname}). last state: {get_current_state(get_by_name(appname, old))}, new state: {get_current_state(app_container_status)}"
+    log.info(
+        f"""received container status change for {name} (main container: {appname}).
+        last state: {get_current_state(old_app_container_status)}, 
+        new state:  {get_current_state(app_container_status)}
+        """
     )
     if not app_container_status:
         return
@@ -42,12 +30,14 @@ def judgeme(old, new, name, namespace, spec, **kwargs):
         get_current_state(app_container_status) == "terminated"
         and app_container_status["state"]["terminated"]["reason"] == "Completed"
     ):
-        print("kill all the sidecars!")
         sidecars = get_sidecars(spec, appname)
-        print(sidecars)
+        log.info(
+            f"""{appname} has reached Completed status.
+            Remaining sidecars: {','.join(sidecars)}
+            """
+        )
         for sidecar in sidecars:
             if sidecar == "linkerd-proxy":
-                core_v1 = init_corev1()
                 port_forward(name, namespace, 4191, core_v1)
                 # use rest-http shutdown
                 # port-forward
