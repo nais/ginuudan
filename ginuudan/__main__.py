@@ -1,5 +1,6 @@
 import kopf
 from kube.port_forward import port_forward
+from kube.exec import exec_command
 from kube import init_corev1
 import spec_utils
 import logger
@@ -41,6 +42,6 @@ def status_change(old, new, name, namespace, spec, **kwargs):
                 continue
             if sidecar == "cloudsql-proxy":
                 # use kill -s INT 1
-                # exec
+                exec_command(core_v1, name, namespace, ["kill", "-s", "INT", "1"])
                 continue
             # ups, can't help you
