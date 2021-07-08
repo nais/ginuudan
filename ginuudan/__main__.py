@@ -36,7 +36,7 @@ def status_change(old, new, name, namespace, spec, **kwargs):
         )
         for sidecar in sidecars:
             if sidecar == "linkerd-proxy":
-                port_forward(name, namespace, 4191, core_v1)
+                port_forward(core_v1, name, namespace, 4191)
                 # use rest-http shutdown
                 # port-forward
                 continue
