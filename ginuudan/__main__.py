@@ -19,15 +19,15 @@ def status_change(old, new, name, namespace, spec, **kwargs):
     appname = name.split("-")[0]
     old_app_container_status = spec_utils.get_by_name(appname, old)
     app_container_status = spec_utils.get_by_name(appname, new)
+    if not app_container_status:
+        return
 
     old_state = spec_utils.get_state(old_app_container_status)
     current_state = spec_utils.get_state(app_container_status)
     log.info(
         f"received container status change for {name} (main container: {appname})."
     )
-    log.debug(f"previous state: {old_state},\ncurrent state: {current_state}")
-    if not app_container_status:
-        return
+    log.info(f"previous state: {old_state},\ncurrent state: {current_state}")
 
     if current_state == "terminated" and spec_utils.is_completed(app_container_status):
         sidecars = spec_utils.get_sidecars(spec, appname)

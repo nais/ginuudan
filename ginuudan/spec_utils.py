@@ -22,10 +22,10 @@ def get_sidecars(spec, appname):
 
 
 def get_reason(status):
-    if "terminated" in status["status"]:
+    if "terminated" in status["state"]:
         return status["state"]["terminated"]["reason"]
     return None
 
 
 def is_completed(status):
-    return get_reason(status) == "Completed"
+    return "state" in status and get_reason(status) == "Completed"

@@ -1,5 +1,4 @@
 from kubernetes.stream import portforward
-import select
 import socket
 from urllib import request
 
