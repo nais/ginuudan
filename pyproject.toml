@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ginuudan"
+version = "0.1.0"
+description = "comes to measure the containers of code, and causes it to dwindle"
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+kopf = "^1.32.1"
+kubernetes = "^17.17.0"
+
+[tool.poetry.dev-dependencies]
+black = "^21.6b0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+ginuudan = "run:kopf"
+format = "run:black"
