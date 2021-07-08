@@ -5,37 +5,6 @@ from urllib import request
 
 
 def port_forward(api_instance, name, namespace, port):
-    pf = portforward(
-        api_instance.connect_get_namespaced_pod_portforward,
-        name,
-        namespace,
-        ports=str(port),
-    )
-    http = pf.socket(port)
-    http.setblocking(True)
-    http.sendall(b"GET / HTTP/1.1\r\n")
-    http.sendall(b"Host: 127.0.0.1\r\n")
-    http.sendall(b"Connection: close\r\n")
-    http.sendall(b"Accept: */*\r\n")
-    http.sendall(b"\r\n")
-    response = b""
-    while True:
-        select.select([http], [], [])
-        data = http.recv(1024)
-        if not data:
-            break
-        response += data
-    http.close()
-
-    error = pf.error(port)
-    if error:
-        print(f"Port {port} has the following error: {error}")
-
-    # Monkey patch socket.create_connection which is used by http.client and
-    # urllib.request. The same can be done with urllib3.util.connection.create_connection
-    # if the 'requests' package is used.
-    socket_create_connection = socket.create_connection
-
     def kubernetes_create_connection(address, *args, **kwargs):
         dns_name = address[0]
         if isinstance(dns_name, bytes):
