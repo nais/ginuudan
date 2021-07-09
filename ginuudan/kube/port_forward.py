@@ -3,7 +3,9 @@ import socket
 from urllib import request
 
 
-def port_forward(api_instance, name, namespace, port):
+def port_forward(api_instance, name, namespace, port, logger):
+    socket_create_connection = socket.create_connection
+
     def kubernetes_create_connection(address, *args, **kwargs):
         dns_name = address[0]
         if isinstance(dns_name, bytes):
@@ -66,5 +68,5 @@ def port_forward(api_instance, name, namespace, port):
     html = resp.read().decode("utf-8")
     resp.close()
     if resp.code != 200:
-        log.info("Status Code: {resp.code}")
-        log.info(html)
+        logger.warn("Status Code: {resp.code}")
+        logger.warn(html)
