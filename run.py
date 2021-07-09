@@ -2,7 +2,7 @@ import subprocess
 
 
 def kopf():
-    cmd = ["kopf", "run", "ginuudan/__main__.py"]
+    cmd = ["kopf", "run", "-v", "--log-format=json", "ginuudan/__main__.py"]
     subprocess.run(cmd)
 
 
