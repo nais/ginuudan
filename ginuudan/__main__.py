@@ -15,8 +15,11 @@ log = logger.setup_logger("ginuudan")
     annotations={"ginuudan.nais.io/dwindle": "true"},
     field="status.containerStatuses",
 )
-def status_change(old, new, name, namespace, spec, **kwargs):
+def status_change(old, new, name, namespace, spec, status, **kwargs):
     appname = name.split("-")[0]
+    if status["phase"] == "Succeeded":
+        return
+
     old_app_container_status = spec_utils.get_by_name(appname, old)
     app_container_status = spec_utils.get_by_name(appname, new)
     if not app_container_status:
