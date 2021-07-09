@@ -66,5 +66,5 @@ def port_forward(api_instance, name, namespace, port):
     html = resp.read().decode("utf-8")
     resp.close()
     if resp.code != 200:
-        print("Status Code: {resp.code}")
-        print(html)
+        log.info("Status Code: {resp.code}")
+        log.info(html)
