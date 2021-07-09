@@ -26,9 +26,8 @@ def status_change(old, new, name, namespace, spec, status, logger, **kwargs):
     old_state = spec_utils.get_state(old_app_container_status)
     current_state = spec_utils.get_state(app_container_status)
     logger.info(
-        f"Received container status change for {name} (main container: {appname})."
+        f"Status change for {name} (main container: {appname}): Old: {old_state}, new: {current_state}"
     )
-    logger.info(f"Previous state: {old_state}, current state: {current_state}")
 
     if current_state == "terminated" and spec_utils.is_completed(app_container_status):
         sidecars = spec_utils.get_sidecars(spec, appname)
@@ -37,14 +36,14 @@ def status_change(old, new, name, namespace, spec, status, logger, **kwargs):
         )
         for sidecar in sidecars:
             if sidecar == "linkerd-proxy":
+                logger.info("Shutting down linkerd-proxy")
                 port_forward(core_v1, name, namespace, 4191, logger)
                 # use rest-http shutdown
                 # port-forward
-                continue
             if sidecar == "cloudsql-proxy":
+                logger.info("Shutting down cloudsql-proxy")
                 # use kill -s INT 1
                 exec_command(
                     core_v1, name, namespace, ["kill", "-s", "INT", "1"], logger
                 )
-                continue
             # ups, can't help you
