@@ -15,7 +15,7 @@ core_v1 = init_corev1()
 )
 def status_change(old, new, name, namespace, spec, status, logger, **kwargs):
     appname = name.split("-")[0]
-    if status["phase"] == "Succeeded":
+    if status["phase"] in ["Succeeded", "Failed"]:
         return
 
     old_app_container_status = spec_utils.get_by_name(appname, old)
