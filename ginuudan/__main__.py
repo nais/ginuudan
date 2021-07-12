@@ -42,8 +42,5 @@ def status_change(old, new, name, namespace, spec, status, logger, **kwargs):
                 )
             if sidecar == "cloudsql-proxy":
                 logger.info("Shutting down cloudsql-proxy")
-                # use kill -s INT 1
-                exec_command(
-                    core_v1, name, namespace, ["kill", "-s", "INT", "1"], logger
-                )
-            # ups, can't help you
+                cmd = ["kill", "-s", "INT", "1"]
+                exec_command(core_v1, name, namespace, cmd, logger)
