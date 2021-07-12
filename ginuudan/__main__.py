@@ -37,9 +37,9 @@ def status_change(old, new, name, namespace, spec, status, logger, **kwargs):
         for sidecar in sidecars:
             if sidecar == "linkerd-proxy":
                 logger.info("Shutting down linkerd-proxy")
-                port_forward(core_v1, name, namespace, 4191, logger)
-                # use rest-http shutdown
-                # port-forward
+                port_forward(
+                    core_v1, name, namespace, "POST", "/shutdown", 4191, logger
+                )
             if sidecar == "cloudsql-proxy":
                 logger.info("Shutting down cloudsql-proxy")
                 # use kill -s INT 1
