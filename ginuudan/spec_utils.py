@@ -21,6 +21,15 @@ def get_sidecars(spec, appname):
     ]
 
 
+def get_running_sidecars(spec, status, appname):
+    running_sidecars = []
+    for sidecar in get_sidecars(spec, appname):
+        sidecar_status = get_by_name(sidecar, status)
+        if sidecar_status and get_state(sidecar_status) == "running":
+            running_sidecars.append(sidecar)
+    return running_sidecars
+
+
 def get_reason(status):
     if "terminated" in status["state"]:
         return status["state"]["terminated"]["reason"]
