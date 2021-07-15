@@ -7,6 +7,8 @@ metadata:
 spec:
   template:
     metadata:
+      labels:
+        app: pi
       annotations:
         ginuudan.nais.io/dwindle: "true"
     spec:
