@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi
+  labels:
+    app: pi
+spec:
+  template:
+    metadata:
+      annotations:
+        ginuudan.nais.io/dwindle: "true"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: pi
+        image: navikt/perl
+        command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(5000)"]
+      - name: secure-logs-fluentd
+        image: docker.pkg.github.com/nais/nais-logd/nais-logd:103
+        volumeMounts:
+          - name:      "secure-logs"
+            mountPath: "/secure-logs"
+          - name:      "secure-logs-config"
+            mountPath: "/fluentd/etc"
+            readOnly:  true
+          - name:      "ca-bundle-pem"
+            mountPath: "/etc/pki/tls/certs/ca-bundle.crt"
+            subPath:   "ca-bundle.pem"
+            readOnly:  true
+      - name: secure-logs-configmap-reload
+        image: jimmidyson/configmap-reload@sha256:befec9f23d2a9da86a298d448cc9140f56a457362a7d9eecddba192db1ab489e
+        args:
+          - --volume-dir=/config
+          - --webhook-url=http://localhost:24444/api/config.reload
+          - --webhook-method=GET
+        volumeMounts:
+          - name:      "secure-logs-config"
+            mountPath: "/config"
+            readOnly:  true
+      volumes:
+        - name: "secure-logs"
+          emptyDir:
+            sizeLimit: "128M"
+        - name: "secure-logs-config"
+          configMap:
+            name: "secure-logs"
+        - name: ca-bundle-pem
+          configMap:
+            name: ca-bundle-pem

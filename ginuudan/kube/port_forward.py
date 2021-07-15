@@ -13,7 +13,7 @@ def port_forward(
     )
     http = pf.socket(http_port)
     http.setblocking(True)
-    http.sendall(bytes(f"{http_method} {http_path} HTTP/1.1\r\n", encoding='ascii'))
+    http.sendall(bytes(f"{http_method} {http_path} HTTP/1.1\r\n", encoding="ascii"))
     http.sendall(b"Host: 127.0.0.1\r\n")
     http.sendall(b"Connection: close\r\n")
     http.sendall(b"Accept: */*\r\n")
@@ -26,7 +26,7 @@ def port_forward(
             break
         response += data
     http.close()
-    logger.debug(response.decode("utf-8"))
+    logger.debug(f"Response: {response.decode('utf-8')}")
     error = pf.error(http_port)
     if error is None:
         logger.info(f"Successfully sent signal to {http_path}.")

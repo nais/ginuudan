@@ -30,17 +30,30 @@ def status_change(old, new, name, namespace, spec, status, logger, **kwargs):
     )
 
     if current_state == "terminated" and spec_utils.is_completed(app_container_status):
+        # todo: only get currently running sidecars here
         sidecars = spec_utils.get_sidecars(spec, appname)
         logger.info(
             f"{appname} has reached Completed status. Remaining sidecars: {','.join(sidecars)}"
         )
         for sidecar in sidecars:
+            sidecar_status = spec_utils.get_by_name(sidecar, new)
+            if spec_utils.get_state(sidecar_status) == "terminated":
+                continue
+            logger.info(f"Shutting down {sidecar}")
             if sidecar == "linkerd-proxy":
-                logger.info("Shutting down linkerd-proxy")
                 port_forward(
                     core_v1, name, namespace, "POST", "/shutdown", 4191, logger
                 )
             if sidecar == "cloudsql-proxy":
-                logger.info("Shutting down cloudsql-proxy")
                 cmd = ["kill", "-s", "INT", "1"]
                 exec_command(core_v1, name, namespace, cmd, logger)
+            if sidecar == "secure-logs-fluentd":
+                port_forward(
+                    core_v1,
+                    name,
+                    namespace,
+                    "GET",
+                    "/api/processes.killWorkers",
+                    24444,
+                    logger,
+                )
