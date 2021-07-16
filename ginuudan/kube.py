@@ -4,6 +4,7 @@ from kubernetes.client.api import core_v1_api
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream, portforward
 import select
+import utils
 
 
 def init_corev1():
@@ -15,11 +16,35 @@ def init_corev1():
 
 
 class KubernetesHandler:
-    def __init__(self, core_v1, name, namespace, logger):
+    def __init__(
+        self,
+        core_v1,
+        name=None,
+        namespace=None,
+        new=None,
+        labels=None,
+        spec=None,
+        logger=None,
+        **kwargs,
+    ):
         self.core_v1 = core_v1
         self.name = name
         self.namespace = namespace
         self.logger = logger
+        self.spec = spec
+        self.new = new
+
+        self.app_name = labels["app"]
+        self.app_status = utils.get_status_for(self.new, self.app_name)
+        self.app_state = utils.get_state(self.app_status)
+
+    @property
+    def running_sidecars(self):
+        return utils.get_running_sidecars(self.spec, self.new, self.app_name)
+
+    @property
+    def completed(self):
+        return self.app_state == "terminated" and utils.is_completed(self.app_status)
 
     def exec_command(self, command):
         try:
@@ -39,6 +64,7 @@ class KubernetesHandler:
             tty=False,
         )
         self.logger.info("Response: " + resp)
+        # TODO: return whether the exec succeeded
 
     def port_forward(self, method, path, port):
         pf = portforward(
@@ -68,3 +94,5 @@ class KubernetesHandler:
             self.logger.info(f"Successfully sent signal to {path}.")
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
+        # error can be used to return whether port forward succeeded,
+        # but perhaps we should raise exceptions instead

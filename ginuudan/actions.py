@@ -9,4 +9,4 @@ except ImportError:
 def load_sidecar_actions(filename):
     with open(filename) as spec:
         data = load(spec, Loader=Loader)
-        actions = {entry["target"]: entry["action"] for entry in data}
+        return {entry["target"]: entry["action"] for entry in data}

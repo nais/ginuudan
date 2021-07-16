@@ -1,4 +1,4 @@
-def get_by_name(name, status):
+def get_status_for(status, name):
     if not status:
         return None
     for d in status:
@@ -24,7 +24,7 @@ def get_sidecars(spec, appname):
 def get_running_sidecars(spec, status, appname):
     running_sidecars = []
     for sidecar in get_sidecars(spec, appname):
-        sidecar_status = get_by_name(sidecar, status)
+        sidecar_status = get_status_for(status, sidecar)
         if sidecar_status and get_state(sidecar_status) == "running":
             running_sidecars.append(sidecar)
     return running_sidecars
