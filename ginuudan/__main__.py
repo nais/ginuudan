@@ -1,9 +1,11 @@
 import kopf
+import pathlib
 from kube import init_corev1, KubernetesHandler
 import utils
 import actions
 
-actions = actions.load_sidecar_actions()
+basepath = pathlib.Path(__file__).parent.parent.absolute()  # hacky alert
+actions = actions.load_sidecar_actions(basepath / "actions.yml")
 core_v1 = init_corev1()
 
 

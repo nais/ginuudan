@@ -1,0 +1,16 @@
+- target: linkerd-proxy
+  action: 
+    type: portforward
+    method: POST
+    path: /shutdown
+    port: 4191
+- target: cloudsql-proxy
+  action:
+    type: exec
+    command: kill -s INT 1
+- target: secure-logs-fluentd
+  action: 
+    type: portforward
+    method: GET
+    path: /api/processes.killWorkers
+    port: 24444
