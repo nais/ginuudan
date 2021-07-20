@@ -17,4 +17,4 @@
 - target: secure-logs-configmap-reload
   action:
     type: exec
-    command: /bin/kill 6
+    command: /bin/killall configmap-reload
