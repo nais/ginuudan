@@ -36,7 +36,7 @@ def status_change(logger, status, labels, **kwargs):
             logger.info(f"Shutting down {sidecar}")
             action = actions[sidecar]
             if action["type"] == "exec":
-                handler.exec_command(action["command"].split())
+                handler.exec_command(sidecar, action["command"].split())
             elif action["type"] == "portforward":
                 handler.port_forward(action["method"], action["path"], action["port"])
         else:

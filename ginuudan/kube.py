@@ -46,7 +46,7 @@ class KubernetesHandler:
     def completed(self):
         return self.app_state == "terminated" and utils.is_completed(self.app_status)
 
-    def exec_command(self, command):
+    def exec_command(self, container, command):
         try:
             self.core_v1.read_namespaced_pod(name=self.name, namespace=self.namespace)
         except ApiException as e:
@@ -57,6 +57,7 @@ class KubernetesHandler:
             self.core_v1.connect_get_namespaced_pod_exec,
             self.name,
             self.namespace,
+            container=container,
             command=command,
             stderr=True,
             stdin=False,

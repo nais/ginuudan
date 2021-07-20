@@ -14,3 +14,7 @@
     method: GET
     path: /api/processes.killWorkers
     port: 24444
+- target: secure-logs-configmap-reload
+  action:
+    type: exec
+    command: /bin/kill 6
