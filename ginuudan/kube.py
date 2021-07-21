@@ -15,16 +15,27 @@ def init_corev1():
     return core_v1_api.CoreV1Api()
 
 
-class KubernetesHandler:
+class App:
+    def __init__(self, labels=None, new=None):
+        self.name = labels["app"] if "app" in labels else ""
+        self.status = utils.get_status_for(new, self.name)
+        self.state = utils.get_state(self.status)
+
+    @property
+    def terminated(self):
+        return self.state == "terminated"
+
+
+class Pod:
     def __init__(
         self,
         core_v1,
+        labels=None,
+        logger=None,
         name=None,
         namespace=None,
         new=None,
-        labels=None,
         spec=None,
-        logger=None,
         **kwargs,
     ):
         self.core_v1 = core_v1
@@ -33,18 +44,20 @@ class KubernetesHandler:
         self.logger = logger
         self.spec = spec
         self.new = new
+        self.app = App(labels, new)
 
-        self.app_name = labels["app"]
-        self.app_status = utils.get_status_for(self.new, self.app_name)
-        self.app_state = utils.get_state(self.app_status)
+    def __sidecars(self):
+        return [
+            container["name"]
+            for container in self.spec["containers"]
+            if container["name"] != self.app.name
+        ]
 
-    @property
     def running_sidecars(self):
-        return utils.get_running_sidecars(self.spec, self.new, self.app_name)
-
-    @property
-    def completed(self):
-        return self.app_state == "terminated" and utils.is_completed(self.app_status)
+        for sidecar in self.__sidecars():
+            sidecar_status = utils.get_status_for(self.new, sidecar)
+            if utils.get_state(sidecar_status) == "running":
+                yield sidecar
 
     def exec_command(self, container, command):
         try:
