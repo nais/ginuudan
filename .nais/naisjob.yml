@@ -5,6 +5,8 @@ metadata:
     team: aura
   name: pi
   namespace: aura
+  annotations:
+    ginuudan.nais.io/dwindle: "true"
 spec:
   image: navikt/perl
   command: ["perl",  "-Mbignum=bpi", "-wle", "print bpi(5000)"]
