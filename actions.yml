@@ -18,3 +18,7 @@
   action:
     type: exec
     command: /bin/killall configmap-reload
+- target: vks-sidecar
+  action:
+    type: exec
+    command: /bin/kill -s INT 1

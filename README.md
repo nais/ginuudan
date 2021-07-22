@@ -9,6 +9,14 @@ Kubernetes `Job`s do not complete unless every container within the `Pod` has be
 In an attempt to solve this, Ginuudan observes `Pod`s with the annotation `ginuudan.nais.io/dwindle` set to `"true"`.
 When the `Pod`'s main application completed, Ginuudan goes through each of the `Pod`'s sidecars to shut them down.
 
+## Sidecars that Ginuudan can handle
+
+- [x] `linkerd-proxy` - runs in GCP
+- [x] `cloudsql-proxy` - runs if your app provisions databases through `spec.gcp.sqlInstances`
+- [x] `secure-logs-fluentd` - runs if your app has `spec.secureLogs.enabled` set to true
+- [x] `secure-logs-configmap-reload` - runs if your app has `spec.secureLogs.enabled` set to true
+- [x] `vks-sidecar` - runs if your app has `spec.vault.sidecar` set to true
+
 ## Run locally
 
 Requires [`poetry`](https://python-poetry.org/docs/#installation).
