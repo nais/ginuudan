@@ -10,6 +10,7 @@ COPY poetry.lock pyproject.toml run.py /app/
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction
 
-COPY ginuudan/ /app/ginuudan
+COPY ginuudan/ ginuudan
+COPY actions.yml .
 
 CMD ["poetry", "run", "ginuudan"]

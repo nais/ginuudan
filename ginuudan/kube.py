@@ -5,10 +5,14 @@ from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream, portforward
 import select
 import utils
+import os
 
 
 def init_corev1():
-    config.load_kube_config()
+    if os.getenv("NAIS_CLUSTER_NAME"):
+        config.load_incluster_config()
+    else:
+        config.load_kube_config()
     c = Configuration.get_default_copy()
     c.assert_hostname = False
     Configuration.set_default(c)
