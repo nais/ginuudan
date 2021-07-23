@@ -20,7 +20,7 @@ metrics = prometheus.Metrics()
 def status_change(logger, **kwargs):
     pod = kube.Pod(core_v1, logger=logger, **kwargs)
     if pod.app.name == "":
-        logger.warn("Required field `labels.app` is not set for {pod.name}")
+        logger.warn(f"Required field `labels.app` is not set for {pod.name}")
         return
     if not pod.app.terminated:
         return
