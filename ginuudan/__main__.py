@@ -1,5 +1,6 @@
 import kopf
 import pathlib
+import prometheus_client as prometheus
 
 import kube
 import actions
@@ -7,6 +8,12 @@ import actions
 basepath = pathlib.Path(__file__).parent.parent.absolute()  # /!\ hacky alert /!\
 actions = actions.load_sidecar_actions(basepath / "actions.yml")
 core_v1 = kube.init_corev1()
+
+
+prometheus.start_http_server(9090)
+SIDECARS_HANDLED_TOTAL = prometheus.Counter(
+    "sidecars_handled_total", "Sidecars shut down", ["sidecar", "app", "namespace"]
+)
 
 
 @kopf.on.field(
@@ -34,3 +41,4 @@ def status_change(logger, **kwargs):
             pod.port_forward(action["method"], action["path"], action["port"])
         else:
             logger.warn(f"Unknown action.type `{action['type']}`")
+        SIDECARS_HANDLED_TOTAL.labels(sidecar, pod.app.name, pod.namespace).inc()

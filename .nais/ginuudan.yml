@@ -12,3 +12,7 @@ spec:
     max: 1
   strategy:
     type: Recreate
+  prometheus:
+    enabled: true
+    path: /
+    port: 9090
