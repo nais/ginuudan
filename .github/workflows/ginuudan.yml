@@ -28,10 +28,10 @@ jobs:
           context: .
           push: true
           tags: ${{ env.IMAGE }}, ${{ env.ginuudan_image }}:latest
-      - name: Deploy to dev-fss
-        uses: nais/deploy/actions/deploy@master
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-fss
-          RESOURCE: .nais/ginuudan.yml
+      # - name: Deploy to dev-fss
+      #  uses: nais/deploy/actions/deploy@master
+      #  env:
+      #    APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+      #    CLUSTER: dev-fss
+      #    RESOURCE: .nais/ginuudan.yml
 
