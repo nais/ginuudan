@@ -2,11 +2,10 @@ apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
   name: ginuudan
-  namespace: aura
   labels:
     team: aura
 spec:
-  image: {{ image }}
+  image: ghcr.io/nais/ginuudan/ginuudan:2021-07-23-ac17ec6
   replicas:
     min: 1
     max: 1
