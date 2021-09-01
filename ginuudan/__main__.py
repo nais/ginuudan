@@ -4,12 +4,18 @@ import pathlib
 import kube
 import actions
 import prometheus
+import logging
 
 basepath = pathlib.Path(__file__).parent.parent.absolute()  # /!\ hacky alert /!\
 actions = actions.load_sidecar_actions(basepath / "actions.yml")
 
 core_v1 = kube.init_corev1()
 metrics = prometheus.Metrics()
+
+
+@kopf.on.startup()
+def configure(settings: kopf.OperatorSettings, **_):
+    settings.posting.level = logging.WARNING
 
 
 @kopf.on.field(
