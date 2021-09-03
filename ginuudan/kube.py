@@ -3,9 +3,10 @@ from kubernetes.client import Configuration
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream, portforward
+import os
+import secrets
 import select
 import utils
-import os
 
 
 def init_corev1():
@@ -40,6 +41,7 @@ class Pod:
         namespace=None,
         new=None,
         spec=None,
+        uid=None,
         **kwargs,
     ):
         self.core_v1 = core_v1
@@ -48,7 +50,14 @@ class Pod:
         self.logger = logger
         self.spec = spec
         self.new = new
+        self.uid = uid
         self.app = App(labels, new)
+        self.event = Event(core_v1)
+
+    def create_object_reference(self):
+        return core_v1.V1ObjectReference(
+            kind="Pod", name=self.name, namespace=self.namespace, uid=self.uid
+        )
 
     def __sidecars(self):
         return [
@@ -81,10 +90,14 @@ class Pod:
             stdout=True,
             tty=False,
         )
-        self.logger.info("Response: " + resp)
+        self.event.create(
+            f"Successfully shutdown {container}",
+            self.namespace,
+            create_object_reference(),
+        )
         # TODO: return whether the exec succeeded
 
-    def port_forward(self, method, path, port):
+    def port_forward(self, container, method, path, port):
         pf = portforward(
             self.core_v1.connect_get_namespaced_pod_portforward,
             self.name,
@@ -109,8 +122,33 @@ class Pod:
         self.logger.debug(f"Response: {response.decode('utf-8')}")
         error = pf.error(port)
         if error is None:
-            self.logger.info(f"Successfully sent signal to {path}.")
+            self.event.create(
+                f"Successfully shutdown {container}",
+                self.namespace,
+                create_object_reference(),
+            )
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
         # error can be used to return whether port forward succeeded,
         # but perhaps we should raise exceptions instead
+
+
+class Event:
+    def __init__(self, core_v1):
+        self.core_v1 = core_v1
+
+    def create(self, message, namespace, involved_object, action):
+        timestamp = datetime.now(timezone.utc)
+        event = core_v1.V1Event(
+            involved_object=involved_object,
+            message=message,
+            metadata=client.V1ObjectMeta(
+                name=f"ginuudan-{secrets.token_urlsafe(8)}",
+            ),
+            reason="ContainerShutdown",
+            source=client.V1EventSource(
+                component="ginuudan",
+            ),
+            type="Info",
+        )
+        self.core_v1.create_namespaced_event(namespace, event)
