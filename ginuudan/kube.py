@@ -1,11 +1,12 @@
-from kubernetes import config
-from kubernetes.client import Configuration
+from kubernetes import config, client
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream, portforward
+import os
+import secrets
 import select
 import utils
-import os
+import datetime
 
 
 def init_corev1():
@@ -13,9 +14,9 @@ def init_corev1():
         config.load_incluster_config()
     else:
         config.load_kube_config()
-    c = Configuration.get_default_copy()
+    c = client.Configuration.get_default_copy()
     c.assert_hostname = False
-    Configuration.set_default(c)
+    client.Configuration.set_default(c)
     return core_v1_api.CoreV1Api()
 
 
@@ -34,12 +35,14 @@ class Pod:
     def __init__(
         self,
         core_v1,
+        event,
         labels=None,
         logger=None,
         name=None,
         namespace=None,
         new=None,
         spec=None,
+        uid=None,
         **kwargs,
     ):
         self.core_v1 = core_v1
@@ -48,7 +51,14 @@ class Pod:
         self.logger = logger
         self.spec = spec
         self.new = new
+        self.uid = uid
         self.app = App(labels, new)
+        self.event = event
+
+    def create_object_reference(self):
+        return client.V1ObjectReference(
+            kind="Pod", name=self.name, namespace=self.namespace, uid=self.uid
+        )
 
     def __sidecars(self):
         return [
@@ -81,10 +91,14 @@ class Pod:
             stdout=True,
             tty=False,
         )
-        self.logger.info("Response: " + resp)
-        # TODO: return whether the exec succeeded
+        self.event.create(
+            f"Successfully shut down {container}",
+            self.namespace,
+            self.create_object_reference(),
+            "Killing",
+        )
 
-    def port_forward(self, method, path, port):
+    def port_forward(self, container, method, path, port):
         pf = portforward(
             self.core_v1.connect_get_namespaced_pod_portforward,
             self.name,
@@ -109,8 +123,43 @@ class Pod:
         self.logger.debug(f"Response: {response.decode('utf-8')}")
         error = pf.error(port)
         if error is None:
-            self.logger.info(f"Successfully sent signal to {path}.")
+            self.event.create(
+                f"Successfully shut down {container}",
+                self.namespace,
+                self.create_object_reference(),
+                "Killing",
+            )
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
-        # error can be used to return whether port forward succeeded,
-        # but perhaps we should raise exceptions instead
+            self.event.create(
+                f"Unsuccessfully shut down {container}",
+                self.namespace,
+                self.create_object_reference(),
+                "Killing",
+                "Error",
+            )
+
+
+class Event:
+    def __init__(self, core_v1):
+        self.core_v1 = core_v1
+
+    def create(
+        self, message, namespace, involved_object, reason, type="Normal"
+    ):
+        timestamp = datetime.datetime.now(datetime.timezone.utc)
+        event = client.V1Event(
+            involved_object=involved_object,
+            first_timestamp=timestamp,
+            last_timestamp=timestamp,
+            message=message,
+            metadata=client.V1ObjectMeta(
+                name=f"ginuudan-{secrets.token_urlsafe(8)}",
+            ),
+            reason=reason,
+            source=client.V1EventSource(
+                component="ginuudan",
+            ),
+            type=type,
+        )
+        self.core_v1.create_namespaced_event(namespace, event)
