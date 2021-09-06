@@ -1,5 +1,4 @@
-from kubernetes import config
-from kubernetes.client import Configuration
+from kubernetes import config, client
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream, portforward
@@ -7,6 +6,7 @@ import os
 import secrets
 import select
 import utils
+import datetime
 
 
 def init_corev1():
@@ -14,9 +14,9 @@ def init_corev1():
         config.load_incluster_config()
     else:
         config.load_kube_config()
-    c = Configuration.get_default_copy()
+    c = client.Configuration.get_default_copy()
     c.assert_hostname = False
-    Configuration.set_default(c)
+    client.Configuration.set_default(c)
     return core_v1_api.CoreV1Api()
 
 
@@ -35,6 +35,7 @@ class Pod:
     def __init__(
         self,
         core_v1,
+        event,
         labels=None,
         logger=None,
         name=None,
@@ -52,10 +53,10 @@ class Pod:
         self.new = new
         self.uid = uid
         self.app = App(labels, new)
-        self.event = Event(core_v1)
+        self.event = event
 
     def create_object_reference(self):
-        return core_v1.V1ObjectReference(
+        return client.V1ObjectReference(
             kind="Pod", name=self.name, namespace=self.namespace, uid=self.uid
         )
 
@@ -93,7 +94,7 @@ class Pod:
         self.event.create(
             f"Successfully shut down {container}",
             self.namespace,
-            create_object_reference(),
+            self.create_object_reference(),
             "Killing",
         )
 
@@ -125,7 +126,7 @@ class Pod:
             self.event.create(
                 f"Successfully shut down {container}",
                 self.namespace,
-                create_object_reference(),
+                self.create_object_reference(),
                 "Killing",
             )
         else:
@@ -133,7 +134,7 @@ class Pod:
             self.event.create(
                 f"Unsuccessfully shut down {container}",
                 self.namespace,
-                create_object_reference(),
+                self.create_object_reference(),
                 "Killing",
                 "Error",
             )
@@ -144,11 +145,13 @@ class Event:
         self.core_v1 = core_v1
 
     def create(
-        self, message, namespace, involved_object, action, reason, type="Normal"
+        self, message, namespace, involved_object, reason, type="Normal"
     ):
-        timestamp = datetime.now(timezone.utc)
-        event = core_v1.V1Event(
+        timestamp = datetime.datetime.now(datetime.timezone.utc)
+        event = client.V1Event(
             involved_object=involved_object,
+            first_timestamp=timestamp,
+            last_timestamp=timestamp,
             message=message,
             metadata=client.V1ObjectMeta(
                 name=f"ginuudan-{secrets.token_urlsafe(8)}",

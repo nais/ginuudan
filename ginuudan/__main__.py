@@ -4,7 +4,6 @@ import pathlib
 import kube
 import actions
 import prometheus
-import logging
 
 basepath = pathlib.Path(__file__).parent.parent.absolute()  # /!\ hacky alert /!\
 actions = actions.load_sidecar_actions(basepath / "actions.yml")
@@ -25,7 +24,7 @@ def configure(settings: kopf.OperatorSettings, **_):
     field="status.containerStatuses",
 )
 def status_change(logger, **kwargs):
-    pod = kube.Pod(core_v1, logger=logger, **kwargs)
+    pod = kube.Pod(core_v1, event, logger=logger, **kwargs)
     if pod.app.name == "":
         event.create(
             f"Required field `labels.app` is not set",
