@@ -6,32 +6,26 @@ on:
 env:
   GINUUDAN_IMAGE: ghcr.io/${{ github.repository }}
 jobs:
-  deploy:
-    name: Deploy Ginuudan to dev-fss
+  build:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@master
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Set version
-        run: echo "IMAGE=${GINUUDAN_IMAGE}:$(date '+%Y-%m-%d')-$(git --no-pager log -1 --pretty=%h)" >> $GITHUB_ENV
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@ab80d026d4753220c4243394c07c7d80f9638d06 # Use commit-sha1 instead of tag for security concerns
+      - uses: docker/setup-buildx-action@v1
+      - run: echo "IMAGE=${GINUUDAN_IMAGE}:$(date '+%Y-%m-%d')-$(git --no-pager log -1 --pretty=%h)" >> $GITHUB_ENV
+      - uses: docker/login-action@ab80d026d4753220c4243394c07c7d80f9638d06 # Use commit-sha1 instead of tag for security concerns
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+      - uses: docker/build-push-action@v2
         with:
           context: .
           push: true
           tags: ${{ env.IMAGE }}
 
   nais-yaml:
-    name: Release to nais-yaml
     runs-on: ubuntu-latest
-    needs: build-push
+    needs: build
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout ginuudan
@@ -44,19 +38,16 @@ jobs:
           repository: navikt/nais-yaml
           token: ${{ secrets.REPO_PUSH_PAT }}
           path: nais-yaml
-      - name: Generate image environment variable
-        run: |
+      - run: |
           cd naiserator
           echo "VERSION=$(date '+%Y-%m-%d')-$(git --no-pager log -1 --pretty=%h)" >> $GITHUB_ENV
           echo "IMAGE=${GINUUDAN_IMAGE}:${VERSION}" >> $GITHUB_ENV
-      - name: Generate nais-yaml files
-        run: |
+      - run: |
           cd naiserator
           res=".nais"
           static_file="../nais-yaml/templates/zz-generated-ginuudan.yaml"
           cat $res/clusterrole.yaml $res/clusterrolebinding.yaml > $static_file
-      - name: Update nais-yaml
-        run: |
+      - run: |
           cd nais-yaml
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
