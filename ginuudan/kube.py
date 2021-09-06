@@ -91,10 +91,10 @@ class Pod:
             tty=False,
         )
         self.event.create(
-            f"Successfully shutdown {container}",
+            f"Successfully shut down {container}",
             self.namespace,
             create_object_reference(),
-            'Killing'
+            "Killing",
         )
 
     def port_forward(self, container, method, path, port):
@@ -123,22 +123,29 @@ class Pod:
         error = pf.error(port)
         if error is None:
             self.event.create(
-                f"Successfully shutdown {container}",
+                f"Successfully shut down {container}",
                 self.namespace,
                 create_object_reference(),
-                'Killing'
+                "Killing",
             )
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
-        # TODO: error can be used to return whether port forward succeeded,
-        # but perhaps we should raise exceptions instead
+            self.event.create(
+                f"Unsuccessfully shut down {container}",
+                self.namespace,
+                create_object_reference(),
+                "Killing",
+                "Error",
+            )
 
 
 class Event:
     def __init__(self, core_v1):
         self.core_v1 = core_v1
 
-    def create(self, message, namespace, involved_object, action, reason, type='Normal'):
+    def create(
+        self, message, namespace, involved_object, action, reason, type="Normal"
+    ):
         timestamp = datetime.now(timezone.utc)
         event = core_v1.V1Event(
             involved_object=involved_object,
@@ -148,7 +155,7 @@ class Event:
             ),
             reason=reason,
             source=client.V1EventSource(
-                component='ginuudan',
+                component="ginuudan",
             ),
             type=type,
         )
