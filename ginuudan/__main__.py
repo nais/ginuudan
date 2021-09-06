@@ -39,6 +39,8 @@ def status_change(logger, **kwargs):
                 f"I don't know how to shut down {sidecar}",
                 pod.namespace,
                 pod.create_object_reference(),
+                'Killing',
+                'Warning'
             )
             continue
         logger.info(f"Shutting down {sidecar}")

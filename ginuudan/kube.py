@@ -94,8 +94,8 @@ class Pod:
             f"Successfully shutdown {container}",
             self.namespace,
             create_object_reference(),
+            'Killing'
         )
-        # TODO: return whether the exec succeeded
 
     def port_forward(self, container, method, path, port):
         pf = portforward(
@@ -126,6 +126,7 @@ class Pod:
                 f"Successfully shutdown {container}",
                 self.namespace,
                 create_object_reference(),
+                'Killing'
             )
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
@@ -137,7 +138,7 @@ class Event:
     def __init__(self, core_v1):
         self.core_v1 = core_v1
 
-    def create(self, message, namespace, involved_object, action):
+    def create(self, message, namespace, involved_object, action, reason, type='Normal'):
         timestamp = datetime.now(timezone.utc)
         event = core_v1.V1Event(
             involved_object=involved_object,
@@ -145,10 +146,10 @@ class Event:
             metadata=client.V1ObjectMeta(
                 name=f"ginuudan-{secrets.token_urlsafe(8)}",
             ),
-            reason="ContainerShutdown",
+            reason=reason,
             source=client.V1EventSource(
-                component="ginuudan",
+                component='ginuudan',
             ),
-            type="Info",
+            type=type,
         )
         self.core_v1.create_namespaced_event(namespace, event)
