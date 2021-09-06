@@ -130,7 +130,7 @@ class Pod:
             )
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
-        # error can be used to return whether port forward succeeded,
+        # TODO: error can be used to return whether port forward succeeded,
         # but perhaps we should raise exceptions instead
 
 
