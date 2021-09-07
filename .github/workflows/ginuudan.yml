@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: navikt/nais-yaml
-          token: ${{ secrets.REPO_PUSH_PAT }}
+          token: ${{ secrets.SRVNAIS_REPO_PUSH_PAT }}
           path: nais-yaml
       - run: |
           cd naiserator
@@ -55,5 +55,5 @@ jobs:
           git add .
           git --no-pager diff --cached
           git status
-          git commit -a -m "Bump Ginuudan to version ${VERSION}"
+          git commit -a -m "ci: Bump Ginuudan to version ${VERSION}"
           git push
