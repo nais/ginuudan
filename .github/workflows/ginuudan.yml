@@ -39,11 +39,11 @@ jobs:
           token: ${{ secrets.SRVNAIS_REPO_PUSH_PAT }}
           path: nais-yaml
       - run: |
-          cd naiserator
+          cd ginuudan
           echo "VERSION=$(date '+%Y-%m-%d')-$(git --no-pager log -1 --pretty=%h)" >> $GITHUB_ENV
           echo "IMAGE=${GINUUDAN_IMAGE}:${VERSION}" >> $GITHUB_ENV
       - run: |
-          cd naiserator
+          cd ginuudan
           res=".nais"
           static_file="../nais-yaml/templates/zz-generated-ginuudan.yaml"
           cat $res/clusterrole.yaml $res/clusterrolebinding.yaml > $static_file
