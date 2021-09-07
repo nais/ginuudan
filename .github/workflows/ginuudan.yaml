@@ -41,7 +41,6 @@ jobs:
       - run: |
           cd ginuudan
           echo "VERSION=$(date '+%Y-%m-%d')-$(git --no-pager log -1 --pretty=%h)" >> $GITHUB_ENV
-          echo "IMAGE=${GINUUDAN_IMAGE}:${VERSION}" >> $GITHUB_ENV
       - run: |
           cd ginuudan
           res=".nais"
@@ -51,7 +50,7 @@ jobs:
           cd nais-yaml
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          sed -E -i "s#image: ${GINUUDAN_IMAGE}:.+#image: ${GINUUDAN_IMAGE}#" vars/global.yaml
+          sed -E -i "s#image: ${GINUUDAN_IMAGE}:.+#image: ${GINUUDAN_IMAGE}:${VERSION}#" vars/global.yaml
           git add .
           git --no-pager diff --cached
           git status
