@@ -46,12 +46,12 @@ jobs:
           cd ginuudan
           res=".nais"
           static_file="../nais-yaml/templates/zz-generated-ginuudan.yaml"
-          cat $res/clusterrole.yaml $res/clusterrolebinding.yaml > $static_file
+          cat $res/ginuudan.yaml $res/clusterrole.yaml $res/clusterrolebinding.yaml > $static_file
       - run: |
           cd nais-yaml
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          sed -E -i "s#image: ${GINUUDAN_IMAGE}:.+#image: ${IMAGE}#" vars/global.yaml
+          sed -E -i "s#image: ${GINUUDAN_IMAGE}:.+#image: ${GINUUDAN_IMAGE}#" vars/global.yaml
           git add .
           git --no-pager diff --cached
           git status
