@@ -45,7 +45,7 @@ jobs:
       - run: |
           cd ginuudan
           res=".nais"
-          static_file="../nais-yaml/templates/zz-generated-ginuudan.yaml"
+          static_file="../nais-yaml/templates/ginuudan.yaml"
           cat $res/ginuudan.yaml $res/clusterrole.yaml $res/clusterrolebinding.yaml > $static_file
       - run: |
           cd nais-yaml
