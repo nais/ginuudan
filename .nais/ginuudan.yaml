@@ -4,6 +4,7 @@ metadata:
   name: ginuudan
   namespace: aura
   labels:
+    app: ginuudan
     team: aura
 spec:
   image: {{ .ginuudan.image }}
