@@ -91,12 +91,7 @@ class Pod:
             stdout=True,
             tty=False,
         )
-        self.event.create(
-            f"Successfully shut down {container}",
-            self.namespace,
-            self.create_object_reference(),
-            "Killing",
-        )
+        self.event.normal(self, f"Successfully shut down {container}")
 
     def port_forward(self, container, method, path, port):
         pf = portforward(
@@ -123,26 +118,32 @@ class Pod:
         self.logger.debug(f"Response: {response.decode('utf-8')}")
         error = pf.error(port)
         if error is None:
-            self.event.create(
-                f"Successfully shut down {container}",
-                self.namespace,
-                self.create_object_reference(),
-                "Killing",
-            )
+            self.event.normal(self, f"Successfully shut down {container}")
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
-            self.event.create(
-                f"Unsuccessfully shut down {container}",
-                self.namespace,
-                self.create_object_reference(),
-                "Killing",
-                "Error",
-            )
+            self.event.error(self, f"Unsuccessfully shut down {container}")
 
 
 class Event:
     def __init__(self, core_v1):
         self.core_v1 = core_v1
+
+    def error(self, pod, message):
+        self.create(
+            message,
+            pod.namespace,
+            pod.create_object_reference(),
+            "Killing",
+            "Error"
+        )
+
+    def normal(self, pod, message):
+        self.create(
+            message,
+            pod.namespace,
+            pod.create_object_reference(),
+            "Killing"
+        )
 
     def create(
         self, message, namespace, involved_object, reason, type="Normal"

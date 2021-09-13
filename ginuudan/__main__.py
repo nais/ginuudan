@@ -26,13 +26,7 @@ def configure(settings: kopf.OperatorSettings, **_):
 def status_change(logger, **kwargs):
     pod = kube.Pod(core_v1, event, logger=logger, **kwargs)
     if pod.app.name == "":
-        event.create(
-            f"Required field `labels.app` is not set",
-            pod.namespace,
-            pod.create_object_reference(),
-            "Killing",
-            "Error",
-        )
+        event.error(pod, f"Required field `labels.app` is not set")
         return
     if not pod.app.terminated:
         return
@@ -40,21 +34,10 @@ def status_change(logger, **kwargs):
     for sidecar in pod.running_sidecars():
         if sidecar not in actions:
             logger.error(f"I don't know how to shut down {sidecar}")
-            event.create(
-                f"I don't know how to shut down {sidecar}",
-                pod.namespace,
-                pod.create_object_reference(),
-                "Killing",
-                "Error",
-            )
+            event.error(pod, f"I don't know how to shut down {sidecar}")
             continue
         logger.info(f"Shutting down {sidecar}")
-        event.create(
-            f"Shutting down {sidecar}",
-            pod.namespace,
-            pod.create_object_reference(),
-            "Killing",
-        )
+        event.info(pod, f"Shutting down {sidecar}")
         action = actions[sidecar]
         if action["type"] == "exec":
             pod.exec_command(sidecar, action["command"].split())
