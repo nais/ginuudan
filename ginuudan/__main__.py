@@ -37,7 +37,7 @@ def status_change(logger, **kwargs):
             event.error(pod, f"I don't know how to shut down {sidecar}")
             continue
         logger.info(f"Shutting down {sidecar}")
-        event.info(pod, f"Shutting down {sidecar}")
+        event.normal(pod, f"Shutting down {sidecar}")
         action = actions[sidecar]
         if action["type"] == "exec":
             pod.exec_command(sidecar, action["command"].split())
