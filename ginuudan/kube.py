@@ -21,9 +21,9 @@ def init_corev1():
 
 
 class App:
-    def __init__(self, labels=None, containerStatuses=None):
+    def __init__(self, labels=None, new=None):
         self.name = labels["app"] if "app" in labels else ""
-        self.status = utils.get_status_for(containerStatuses, self.name)
+        self.status = utils.get_status_for(new, self.name)
         self.state = utils.get_state(self.status)
 
     @property
@@ -35,12 +35,12 @@ class Pod:
     def __init__(
         self,
         core_v1,
-        pod_event,
         event,
         labels=None,
         logger=None,
         name=None,
         namespace=None,
+        new=None,
         spec=None,
         uid=None,
         **kwargs,
@@ -50,10 +50,10 @@ class Pod:
         self.namespace = namespace
         self.logger = logger
         self.spec = spec
+        self.new = new
         self.uid = uid
-        self.status = event['object']['status']['containerStatuses']
-        self.app = App(labels, self.status)
-        self.pod_event = pod_event
+        self.app = App(labels, new)
+        self.event = event
 
     def create_object_reference(self):
         return client.V1ObjectReference(
@@ -69,7 +69,7 @@ class Pod:
 
     def running_sidecars(self):
         for sidecar in self.__sidecars():
-            sidecar_status = utils.get_status_for(self.status, sidecar)
+            sidecar_status = utils.get_status_for(self.new, sidecar)
             if utils.get_state(sidecar_status) == "running":
                 yield sidecar
 
@@ -91,7 +91,7 @@ class Pod:
             stdout=True,
             tty=False,
         )
-        self.pod_event.normal(self, f"Successfully shut down {container}")
+        self.event.normal(self, f"Successfully shut down {container}")
 
     def port_forward(self, container, method, path, port):
         pf = portforward(
@@ -118,10 +118,10 @@ class Pod:
         self.logger.debug(f"Response: {response.decode('utf-8')}")
         error = pf.error(port)
         if error is None:
-            self.pod_event.normal(self, f"Successfully shut down {container}")
+            self.event.normal(self, f"Successfully shut down {container}")
         else:
             self.logger.error(f"Port {port} has the following error: {error}")
-            self.pod_event.error(self, f"Unsuccessfully shut down {container}")
+            self.event.error(self, f"Unsuccessfully shut down {container}")
 
 
 class Event:
@@ -146,7 +146,7 @@ class Event:
         )
 
     def create(
-        self, message, namespace, involved_object, reason, event_type="Normal"
+        self, message, namespace, involved_object, reason, type="Normal"
     ):
         timestamp = datetime.datetime.now(datetime.timezone.utc)
         event = client.V1Event(
@@ -161,7 +161,6 @@ class Event:
             source=client.V1EventSource(
                 component="ginuudan",
             ),
-            type=event_type,
+            type=type,
         )
-        # it seems to get pretty angry if i send events to the pods during nuclear mode
-        # self.core_v1.create_namespaced_event(namespace, event)
+        self.core_v1.create_namespaced_event(namespace, event)
