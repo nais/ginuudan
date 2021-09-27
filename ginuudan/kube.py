@@ -125,8 +125,9 @@ class Pod:
 
 
 class Event:
-    def __init__(self, core_v1):
+    def __init__(self, core_v1, nuclear=False):
         self.core_v1 = core_v1
+        self.nuclear = nuclear
 
     def error(self, pod, message):
         self.create(
@@ -164,4 +165,5 @@ class Event:
             type=event_type,
         )
         # it seems to get pretty angry if i send events to the pods during nuclear mode
-        # self.core_v1.create_namespaced_event(namespace, event)
+        if not self.nuclear:
+            self.core_v1.create_namespaced_event(namespace, event)
