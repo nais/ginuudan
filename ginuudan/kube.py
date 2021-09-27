@@ -36,7 +36,7 @@ class Pod:
         self,
         core_v1,
         pod_event,
-        event,
+        containerStatuses,
         labels=None,
         logger=None,
         name=None,
@@ -51,7 +51,7 @@ class Pod:
         self.logger = logger
         self.spec = spec
         self.uid = uid
-        self.status = event['object']['status']['containerStatuses']
+        self.status = containerStatuses
         self.app = App(labels, self.status)
         self.pod_event = pod_event
 

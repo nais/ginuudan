@@ -7,7 +7,7 @@ import prometheus
 
 basepath = pathlib.Path(__file__).parent.parent.absolute()  # /!\ hacky alert /!\
 actions = actions.load_sidecar_actions(basepath / "actions.yml")
-nuclear = False
+nuclear = True
 
 core_v1 = kube.init_corev1()
 metrics = prometheus.Metrics()
@@ -25,7 +25,8 @@ if nuclear:
         annotations={"ginuudan.nais.io/dwindle": "true"},
     )
     def status_change(event, logger, **kwargs):
-        pod = kube.Pod(core_v1, pod_event, event, logger=logger, **kwargs)
+        containerStatuses = event['object']['status']['containerStatuses']
+        pod = kube.Pod(core_v1, pod_event, containerStatuses, logger=logger, **kwargs)
         if pod.app.name == "":
             return
         if not pod.app.terminated:
@@ -52,8 +53,9 @@ else:
         annotations={"ginuudan.nais.io/dwindle": "true"},
         field="status.containerStatuses",
     )
-    def status_change(logger, **kwargs):
-        pod = kube.Pod(core_v1, pod_event, logger=logger, **kwargs)
+    def status_change(status, logger, **kwargs):
+        containerStatuses = status["containerStatuses"]
+        pod = kube.Pod(core_v1, pod_event, containerStatuses, logger=logger, **kwargs)
         if pod.app.name == "":
             pod_event.error(pod, f"Required field `labels.app` is not set")
             return
