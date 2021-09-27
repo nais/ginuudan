@@ -7,11 +7,11 @@ import prometheus
 
 basepath = pathlib.Path(__file__).parent.parent.absolute()  # /!\ hacky alert /!\
 actions = actions.load_sidecar_actions(basepath / "actions.yml")
-nuclear = True
+nuclear = False
 
 core_v1 = kube.init_corev1()
 metrics = prometheus.Metrics()
-pod_event = kube.Event(core_v1, nuclear)
+pod_event = kube.Event(core_v1, nuclear=nuclear)
 
 
 @kopf.on.startup()
