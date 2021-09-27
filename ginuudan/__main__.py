@@ -24,7 +24,7 @@ if nuclear:
         "pods",
         annotations={"ginuudan.nais.io/dwindle": "true"},
     )
-    def status_change(event, logger, **kwargs):
+    def event_change(event, logger, **kwargs):
         containerStatuses = event['object']['status']['containerStatuses']
         pod = kube.Pod(core_v1, pod_event, containerStatuses, logger=logger, **kwargs)
         if pod.app.name == "":
