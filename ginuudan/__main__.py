@@ -19,7 +19,7 @@ def configure(settings: kopf.OperatorSettings, **_):
     settings.posting.enabled = False
 
 if nuclear:
-    print("Running nuclear mode. Events will not be posted to pods,")
+    print("Running nuclear mode! Events will not be posted to pods,")
     @kopf.on.event(
         "pods",
         annotations={"ginuudan.nais.io/dwindle": "true"},
