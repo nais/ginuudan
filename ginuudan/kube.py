@@ -150,9 +150,9 @@ class Event:
         self, message, namespace, involved_object, reason, event_type="Normal"
     ):
         timestamp = datetime.datetime.now(datetime.timezone.utc)
-        event_api = client.EventsV1beta1Api()
+        event_api = client.EventsV1Api()
         reporting_instance=f"ginuudan-{secrets.token_urlsafe(8)}"
-        event = client.V1beta1Event(
+        event = client.V1Event(
             action=reason,
             note=message,
             event_time=timestamp,
