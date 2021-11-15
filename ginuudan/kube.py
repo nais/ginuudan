@@ -150,20 +150,22 @@ class Event:
         self, message, namespace, involved_object, reason, event_type="Normal"
     ):
         timestamp = datetime.datetime.now(datetime.timezone.utc)
-        event = client.V1Event(
-            involved_object=involved_object,
-            first_timestamp=timestamp,
-            last_timestamp=timestamp,
-            message=message,
-            metadata=client.V1ObjectMeta(
-                name=f"ginuudan-{secrets.token_urlsafe(8)}",
-            ),
+        event_api = client.EventsV1beta1Api()
+        reporting_instance=f"ginuudan-{secrets.token_urlsafe(8)}"
+        event = client.V1beta1Event(
+            action=reason,
+            note=message,
+            event_time=timestamp,
             reason=reason,
-            source=client.V1EventSource(
-                component="ginuudan",
+            metadata=client.V1ObjectMeta(
+                name=reporting_instance,
             ),
-            type=event_type,
+            regarding=involved_object,
+            reporting_controller="ginuudan",
+            reporting_instance=reporting_instance,
+            type=event_type
+
         )
         # it seems to get pretty angry if i send events to the pods during nuclear mode
         if not self.nuclear:
-            self.core_v1.create_namespaced_event(namespace, event)
+            event_api.create_namespaced_event(namespace, event)
