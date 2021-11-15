@@ -10,7 +10,6 @@ rules:
       - ""
     resources:
       - pods
-      - events
     verbs:
       - create
       - list
@@ -34,3 +33,10 @@ rules:
       - create
       - get
       - list
+  
+  - apiGroups:
+      - "events.k8s.io"
+    resources:
+      - events
+    verbs:
+      - create
