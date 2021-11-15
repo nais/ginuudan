@@ -7,7 +7,7 @@ import prometheus
 
 basepath = pathlib.Path(__file__).parent.parent.absolute()  # /!\ hacky alert /!\
 actions = actions.load_sidecar_actions(basepath / "actions.yml")
-nuclear = False
+nuclear = True
 
 core_v1 = kube.init_corev1()
 metrics = prometheus.Metrics()
