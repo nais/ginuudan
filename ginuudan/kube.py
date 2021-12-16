@@ -149,10 +149,13 @@ class Event:
     def create(
         self, message, namespace, involved_object, reason, event_type="Normal"
     ):
+        # it seems to get pretty angry if i send events to the pods during nuclear mode
+        if self.nuclear:
+            return
         timestamp = datetime.datetime.now(datetime.timezone.utc)
         event_api = client.EventsV1Api()
         reporting_instance=f"ginuudan-{secrets.token_urlsafe(8)}"
-        event = client.V1Event(
+        event = client.EventsV1Event(
             action=reason,
             note=message,
             event_time=timestamp,
@@ -166,6 +169,5 @@ class Event:
             type=event_type
 
         )
-        # it seems to get pretty angry if i send events to the pods during nuclear mode
-        if not self.nuclear:
-            event_api.create_namespaced_event(namespace, event)
+        
+        event_api.create_namespaced_event(namespace, event)
